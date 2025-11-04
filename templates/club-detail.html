@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}{{ club.name }} - Campushelp{% endblock %}
+
+{% block header_title %}{{ club.name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen p-6">
+    <div class="max-w-6xl mx-auto">
+        <!-- Back Button -->
+        <a href="{{ url_for('clubs') }}" class="inline-flex items-center text-purple-600 hover:text-purple-800 mb-6">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Back to Clubs
+        </a>
+
+        <!-- Club Header -->
+        <div class="glass-card rounded-2xl p-8 mb-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <div class="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center mr-6">
+                        <span class="text-4xl">
+                            {% if club.club_type == 'Academic' %}
+                                {% if club.name.startswith('Computer') %} &lt;/&gt;
+                                {% elif club.name.startswith('Debate') %} 🗣️
+                                {% elif club.name.startswith('Physics') %} ⚛️
+                                {% else %} 📚
+                                {% endif %}
+                            {% else %}
+                                {% if club.name.startswith('Photo') %} 📸
+                                {% elif club.name.startswith('Hiking') %} ⛰️
+                                {% elif club.name.startswith('Gaming') %} 🎮
+                                {% else %} ✨
+                                {% endif %}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800">{{ club.name }}</h1>
+                        <span class="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm mt-2">
+                            {{ club.club_type }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col gap-2">
+                    {% if is_member %}
+                        <button onclick="leaveClub({{ club.id }})" class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">
+                            Leave Club
+                        </button>
+                    {% else %}
+                        <button onclick="joinClub({{ club.id }})" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                            Join Club
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Club Description -->
+            <div class="border-t pt-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-3">About</h2>
+                <p class="text-gray-600 leading-relaxed">{{ club.description }}</p>
+            </div>
+
+            <!-- Club Secretary -->
+            {% if club.secretary %}
+            <div class="border-t mt-6 pt-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-3">Club Secretary</h2>
+                <div class="flex items-center">
+                    <div class="w-12 h-12 rounded-full bg-purple-200 flex items-center justify-center mr-4">
+                        <span class="text-lg font-semibold text-purple-700">{{ club.secretary.name }}</span>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800">{{ club.secretary.first_name }} {{ club.secretary.last_name }}</p>
+                        <p class="text-sm text-gray-600">{{ club.secretary.email }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Members Section -->
+        <div class="glass-card rounded-2xl p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Members ({{ club.memberships|length }})</h2>
+            
+            {% if club.memberships %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for membership in club.memberships %}
+                <div class="flex items-center p-4 bg-white rounded-lg shadow-sm">
+                    <div class="w-10 h-10 rounded-full bg-purple-200 flex items-center justify-center mr-3">
+                        <span class="text-sm font-semibold text-purple-700">{{ membership.user.names }}</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-medium text-gray-800">{{ membership.user.first_name }} {{ membership.user.last_name }}</p>
+                        {% if membership.is_verified %}
+                        <span class="text-xs text-green-600">✓ Verified</span>
+                        {% else %}
+                        <span class="text-xs text-gray-500">Pending</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-600">No members yet. Be the first to join!</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function joinClub(clubId) {
+    fetch(`/club/${clubId}/join`, { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || 'Successfully joined the club!');
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Error joining club:', error);
+            alert('An error occurred. Please try again.');
+        });
+}
+
+function leaveClub(clubId) {
+    if (confirm('Are you sure you want to leave this club?')) {
+        fetch(`/club/${clubId}/leave`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || 'Successfully left the club!');
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error leaving club:', error);
+                alert('An error occurred. Please try again.');
+            });
+    }
+}
+</script>
+{% endblock %}

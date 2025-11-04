@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Clubs - Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-purple-100">
+    <div class="min-h-screen p-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-6">
+                <a href="{{ url_for('admin_dashboard') }}" class="text-purple-600 hover:text-purple-800 font-semibold">← Back to Dashboard</a>
+            </div>
+
+            <h1 class="text-4xl font-bold text-purple-900 mb-8">Manage Clubs</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white rounded-xl p-8 shadow-lg">
+                    <h2 class="text-2xl font-bold text-purple-900 mb-6">Create New Club</h2>
+                    <form method="POST" class="space-y-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="action" value="create">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Club Name</label>
+                            <input type="text" name="name" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-600 focus:border-purple-600">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Club Type</label>
+                            <select name="club_type" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-600 focus:border-purple-600">
+                                <option value="Academic">Academic</option>
+                                <option value="Non-Academic">Non-Academic</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea name="description" rows="3" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-600 focus:border-purple-600"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition">
+                            Create Club
+                        </button>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-lg">
+                    <h2 class="text-2xl font-bold text-purple-900 mb-6">Appoint Club Leader</h2>
+                    <form method="POST" class="space-y-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="action" value="appoint_leader">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Club</label>
+                            <select name="club_id" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-600 focus:border-purple-600">
+                                <option value="">Choose a club...</option>
+                                {% for club in clubs %}
+                                <option value="{{ club.id }}">{{ club.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Student Email</label>
+                            <input type="email" name="student_email" required placeholder="student@example.com" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-600 focus:border-purple-600">
+                        </div>
+                        <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition">
+                            Appoint Leader
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl p-8 shadow-lg">
+                <h2 class="text-2xl font-bold text-purple-900 mb-6">Existing Clubs</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for club in clubs %}
+                    <div class="border-2 border-purple-200 rounded-lg p-6 hover:border-purple-400 transition">
+                        <h3 class="text-xl font-bold text-purple-900 mb-2">{{ club.name }}</h3>
+                        <p class="text-sm text-purple-600 mb-2">{{ club.club_type }}</p>
+                        <p class="text-gray-600 text-sm mb-3">{{ club.description or 'No description' }}</p>
+                        <div class="border-t pt-3">
+                            <p class="text-sm text-gray-700">
+                                <span class="font-semibold">Leader:</span>
+                                {% if club.secretary %}
+                                    {{ club.secretary.name }}
+                                {% else %}
+                                    <span class="text-red-500">Not appointed</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="fixed top-4 right-4 z-50">
+                {% for category, message in messages %}
+                <div class="bg-white border-l-4 {{ 'border-green-500' if category == 'success' else 'border-red-500' }} p-4 rounded shadow-lg mb-2">
+                    <p class="text-gray-800">{{ message }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

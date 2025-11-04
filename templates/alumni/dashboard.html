@@ -1,0 +1,124 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Alumni Dashboard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100 p-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-purple-900">Welcome, {{ alumni.name }}</h1>
+            <p class="text-purple-600 mt-2">Batch of {{ alumni.batch }}</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-purple-600">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Current Position</h3>
+                <p class="text-purple-600 font-semibold">{{ alumni.current_designation or 'Not set' }}</p>
+                <p class="text-gray-600">{{ alumni.company or 'No company' }}</p>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-purple-600">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Contact</h3>
+                <p class="text-purple-600">{{ alumni.email }}</p>
+            </div>
+            <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-purple-600">
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Batch</h3>
+                <p class="text-purple-600 text-2xl font-bold">{{ alumni.batch }}</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-xl p-6 shadow-lg">
+                <h2 class="text-2xl font-bold text-purple-900 mb-4">Alumni Network</h2>
+                <p class="text-gray-600 mb-4">Connect with fellow alumni and share your experiences</p>
+                <a href="{{ url_for('alumni') }}" class="block w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition text-center">
+                    View Alumni Network
+                </a>
+            </div>
+
+            <div class="bg-white rounded-xl p-6 shadow-lg">
+                <h2 class="text-2xl font-bold text-purple-900 mb-4">Quick Actions</h2>
+                <div class="space-y-3">
+                    <a href="{{ url_for('events') }}" class="block w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition text-center">
+                        Campus Events
+                    </a>
+                    <a href="{{ url_for('community') }}" class="block w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition text-center">
+                        Community Forum
+                    </a>
+                    <a href="{{ url_for('login') }}" class="block w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition text-center">
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Requests Section -->
+        <div class="bg-white rounded-xl p-6 shadow-lg">
+            <h2 class="text-2xl font-bold text-purple-900 mb-4">Contact Requests</h2>
+            <div id="contactRequests">
+                <p class="text-gray-600">Loading requests...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function loadContactRequests() {
+    try {
+        const response = await fetch('/alumni/contact-requests');
+        const data = await response.json();
+        
+        const container = document.getElementById('contactRequests');
+        if (data.success && data.requests.length > 0) {
+            container.innerHTML = data.requests.map(req => `
+                <div class="border-l-4 border-purple-500 pl-4 py-3 mb-3 bg-purple-50 rounded">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${req.student_name}</h4>
+                            <p class="text-sm text-gray-600">${req.student_email}</p>
+                            ${req.message ? `<p class="text-sm text-gray-700 mt-2 italic">"${req.message}"</p>` : ''}
+                            <p class="text-xs text-gray-500 mt-1">${new Date(req.requested_at).toLocaleDateString()}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="reviewRequest(${req.id}, 'accepted')" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+                                Accept
+                            </button>
+                            <button onclick="reviewRequest(${req.id}, 'rejected')" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm">
+                                Reject
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            container.innerHTML = '<p class="text-gray-600">No pending contact requests</p>';
+        }
+    } catch (error) {
+        document.getElementById('contactRequests').innerHTML = '<p class="text-red-600">Error loading requests</p>';
+    }
+}
+
+async function reviewRequest(requestId, status) {
+    try {
+        const response = await fetch('/alumni/review-contact-request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ request_id: requestId, status: status })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            alert(`Request ${status} successfully!`);
+            loadContactRequests();
+        } else {
+            alert('Failed to review request');
+        }
+    } catch (error) {
+        alert('Error reviewing request');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadContactRequests);
+</script>
+{% endblock %}

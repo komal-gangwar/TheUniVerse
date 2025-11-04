@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Teacher - Campus Sphere</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        .mode-normal {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .mode-practice {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .mode-counseling {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .chat-container {
+            height: calc(100vh - 200px);
+        }
+        .left-panel {
+            overflow: hidden;
+        }
+        .pulse-ring {
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            80%, 100% { transform: scale(1.4); opacity: 0; }
+        }
+        .message-enter {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .avatar-container {
+            min-height: 400px;
+        }
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 16px;
+        }
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background: #9333ea;
+            border-radius: 50%;
+            display: inline-block;
+            animation: typing 1.4s infinite;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.7; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+        .ai-response {
+            line-height: 1.6;
+        }
+        .ai-response pre {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+        .ai-response code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #e11d48;
+        }
+        .ai-response pre code {
+            background: transparent;
+            padding: 0;
+            color: #e5e7eb;
+        }
+        .ai-response ul, .ai-response ol {
+            margin: 8px 0;
+            padding-left: 24px;
+        }
+        .ai-response li {
+            margin: 4px 0;
+        }
+        .ai-response h1, .ai-response h2, .ai-response h3 {
+            font-weight: 700;
+            margin: 16px 0 8px 0;
+        }
+        .ai-response h1 { font-size: 1.5em; }
+        .ai-response h2 { font-size: 1.3em; }
+        .ai-response h3 { font-size: 1.1em; }
+        .ai-response p {
+            margin: 8px 0;
+        }
+        .ai-response strong {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .ai-response blockquote {
+            border-left: 4px solid #9333ea;
+            padding-left: 16px;
+            margin: 12px 0;
+            color: #6b7280;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #4b5563;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .code-block-wrapper {
+            position: relative;
+        }
+        .code-block-wrapper:hover .copy-btn {
+            opacity: 1;
+        }
+        .ai-response, .message-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            max-width: 100%;
+        }
+        .practice-step {
+            display: none;
+        }
+        .practice-step.active {
+            display: block;
+        }
+        .code-editor {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 8px;
+            padding: 12px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="min-h-screen">
+        <header class="mode-normal text-white py-6 px-8 transition-all duration-500" id="header">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold">AI Virtual Teacher</h1>
+                    <p class="text-sm opacity-90 mt-1">Hello, {{ user.name }}! I'm here to help you learn.</p>
+                </div>
+                <a href="/dashboard" class="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+                    Back to Dashboard
+                </a>
+            </div>
+        </header>
+
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <!-- Main Chat Interface (starts directly) -->
+            <div id="chatInterface" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Virtual Teacher (Left Side) -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 left-panel" style="overflow: hidden;">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Virtual Teacher</h3>
+                    <div class="avatar-container flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl" style="overflow: hidden;">
+                        <model-viewer
+                            src="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb"
+                            alt="AI Teacher Avatar"
+                            auto-rotate
+                            camera-controls
+                            style="width: 100%; height: 400px;"
+                            exposure="0.8">
+                        </model-viewer>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <p id="avatarStatus" class="text-sm text-gray-600">Ready to help you learn!</p>
+                    </div>
+                </div>
+
+                <!-- Chat Interface (Right Side) -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">Chat</h3>
+                    
+                    <!-- Mode Selection Buttons (shown after chat starts) -->
+                    <div id="modeButtons" class="grid grid-cols-3 gap-2 mb-4">
+                        <button onclick="switchMode('normal')" id="normalBtn"
+                            class="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition">
+                            🧠 Normal
+                        </button>
+                        <button onclick="switchMode('practice')" id="practiceBtn"
+                            class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300 transition">
+                            🧩 Practice
+                        </button>
+                        <button onclick="switchMode('counseling')" id="counselingBtn"
+                            class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-300 transition">
+                            💬 Counseling
+                        </button>
+                    </div>
+                    
+                    <div id="chatMessages" class="chat-container overflow-y-auto mb-4 space-y-3 flex-1">
+                        <div class="text-center text-gray-500 py-8">
+                            <p>👋 Welcome! Start chatting below.</p>
+                        </div>
+                    </div>
+
+                    <!-- Practice Mode Flow -->
+                    <div id="practiceFlow" class="mb-4" style="display: none;">
+                        <!-- Step 1: Topic Input -->
+                        <div id="topicStep" class="practice-step active">
+                            <div class="p-4 bg-pink-50 rounded-xl">
+                                <h4 class="font-semibold text-gray-800 mb-3">What topic do you want to practice?</h4>
+                                <input type="text" id="topicInput" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500" placeholder="e.g., JavaScript Arrays, Data Structures, Python">
+                                <button onclick="submitTopic()" class="mt-3 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition w-full">
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Question Type Selection -->
+                        <div id="questionTypeStep" class="practice-step">
+                            <div class="p-4 bg-pink-50 rounded-xl">
+                                <h4 class="font-semibold text-gray-800 mb-3">Choose question type:</h4>
+                                <div class="grid grid-cols-1 gap-2">
+                                    <button onclick="selectQuestionType('mcq')" class="px-4 py-3 bg-white border-2 border-pink-300 text-gray-800 rounded-lg hover:bg-pink-100 transition text-left">
+                                        <div class="font-medium">📝 Multiple Choice Questions (MCQ)</div>
+                                        <div class="text-sm text-gray-600">Test with quick questions</div>
+                                    </button>
+                                    <button onclick="selectQuestionType('subjective')" class="px-4 py-3 bg-white border-2 border-pink-300 text-gray-800 rounded-lg hover:bg-pink-100 transition text-left">
+                                        <div class="font-medium">✍️ Subjective Questions</div>
+                                        <div class="text-sm text-gray-600">Detailed answers</div>
+                                    </button>
+                                    <button onclick="selectQuestionType('coding')" class="px-4 py-3 bg-white border-2 border-pink-300 text-gray-800 rounded-lg hover:bg-pink-100 transition text-left" id="codingOption">
+                                        <div class="font-medium">💻 Coding Challenge</div>
+                                        <div class="text-sm text-gray-600">Write and test code</div>
+                                    </button>
+                                </div>
+                                <button onclick="backToTopic()" class="mt-3 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition w-full">
+                                    Back
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: MCQ Display -->
+                        <div id="mcqDisplay" class="practice-step">
+                            <div class="p-4 bg-blue-50 rounded-xl">
+                                <div id="mcqQuestion" class="font-medium text-gray-800 mb-4"></div>
+                                <div id="mcqOptions" class="space-y-2 mb-4"></div>
+                                <button onclick="submitMCQ()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition w-full">
+                                    Submit Answer
+                                </button>
+                                <div id="mcqResult" class="mt-3" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Subjective Display -->
+                        <div id="subjectiveDisplay" class="practice-step">
+                            <div class="p-4 bg-purple-50 rounded-xl">
+                                <div id="subjectiveQuestion" class="font-medium text-gray-800 mb-4"></div>
+                                <button onclick="showSubjectiveAnswer()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition w-full">
+                                    Show Answer
+                                </button>
+                                <div id="subjectiveAnswer" class="mt-3 p-3 bg-white rounded-lg" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Coding Challenge (LeetCode style) -->
+                        <div id="codingDisplay" class="practice-step">
+                            <div class="p-4 bg-gray-900 rounded-xl text-white">
+                                <div id="codingQuestion" class="mb-4 text-gray-200"></div>
+                                <div id="testCases" class="mb-3 p-3 bg-gray-800 rounded-lg text-sm"></div>
+                                <textarea id="codeEditor" class="code-editor w-full h-48 mb-3" placeholder="// Write your code here..."></textarea>
+                                <div class="flex gap-2">
+                                    <button onclick="runCode()" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                        ▶ Run Code
+                                    </button>
+                                    <button onclick="submitCode()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                        Submit
+                                    </button>
+                                </div>
+                                <div id="codeOutput" class="mt-3 p-3 bg-gray-800 rounded-lg text-sm" style="display: none;"></div>
+                            </div>
+                        </div>
+
+                        <button onclick="newQuestion()" class="mt-3 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition w-full">
+                            New Question
+                        </button>
+                    </div>
+
+                    <div class="flex gap-2 items-center">
+                        <input type="text" id="messageInput" 
+                            placeholder="Type your message..." 
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button onclick="toggleVoice()" id="voiceBtn" 
+                            class="p-3 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+                            🎤
+                        </button>
+                        <button onclick="sendMessage()" 
+                            class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                            Send
+                        </button>
+                    </div>
+                    <div class="mt-2 flex items-center gap-2">
+                        <label class="flex items-center gap-2 text-sm text-gray-600">
+                            <input type="checkbox" id="soundToggle" checked class="rounded">
+                            Enable Voice Output
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/ai-teacher.js"></script>
+</body>
+</html>
