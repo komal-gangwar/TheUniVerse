@@ -2,8 +2,17 @@ import os
 import json
 import google.generativeai as genai
 
-# configure the API key once
-genai.configure(api_key="YOUR_API_KEY_HERE")
+import google.generativeai as genai
+import json
+
+genai.configure(api_key="AIzaSyBvjzdJPP2u3tA4ABMT0kEdXhPpggLKkSg")
+
+model = genai.GenerativeModel(model_name="gemini-2.5-flash")
+
+# Example call
+response = model.generate_content("Write a haiku about debugging.")
+print(response.text)
+
 
 def chat_with_ai(message: str, mode: str = 'normal', user_context: dict = None) -> str:
     """
@@ -31,7 +40,9 @@ def chat_with_ai(message: str, mode: str = 'normal', user_context: dict = None) 
         else:
             system_prompt = "You are a helpful virtual teacher assistant."
 
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel(model_name="gemini-2.5-flash")
+
+
 
         response = model.generate_content(
             [system_prompt, message],
@@ -59,7 +70,9 @@ def generate_practice_questions(subject: str, question_type: str, difficulty: st
             prompt = f"""Generate a {difficulty} level subjective question for {subject}.
             Return JSON with: {{"question": "question text", "key_points": [], "sample_answer": ""}}"""
 
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel(model_name="gemini-2.5-flash")
+
+
         response = model.generate_content(prompt)
 
         if response.text:
@@ -87,7 +100,8 @@ def check_coding_answer(question: str, user_code: str, test_cases: list) -> dict
         Analyze if the code solves the problem correctly. Return JSON with:
         {{"correct": true/false, "feedback": "detailed feedback", "passed_tests": number, "total_tests": number}}"""
 
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel(model_name="gemini-2.5-flash")
+
         response = model.generate_content(prompt)
 
         if response.text:
@@ -96,3 +110,4 @@ def check_coding_answer(question: str, user_code: str, test_cases: list) -> dict
 
     except Exception as e:
         return {"error": str(e)}
+
