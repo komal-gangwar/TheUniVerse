@@ -1,49 +1,112 @@
-# 🌌 The Uni Verse
+# The Uni Verse
 
-**Your world, your people, your Uni Verse.**  
-An all-in-one platform connecting every part of campus life — from live bus tracking and academic resources to alumni networks, events, faculty info, student communities, and an AI-powered virtual teacher. The Uni Verse keeps your campus connected, accessible, and alive.
-
----
-
-## 🚀 Features
-
-- 🚌 **Live Bus Tracking** – Real-time updates using OpenStreetMap & Leaflet  
-- 📚 **Academic Resources** – Notes, syllabus, previous year papers  
-- 🤖 **AI Virtual Teacher** – Powered by Gemini API  
-  - **Normal Mode:** Ask academic questions and get instant explanations  
-  - **Practice Mode:** Auto-generates MCQs, subjective questions, and coding tasks  
-  - **Counselling Mode:** Academic/personal guidance and supportive responses  
-- 🎓 **Alumni Network** – Connect with seniors and graduates  
-- 🎉 **Events & Highlights** – Stay updated with all campus happenings  
-- 👩‍🏫 **Faculty Directory** – Quick access to faculty details & contact info  
-- 🤝 **Clubs & Communities** – Explore and join campus clubs  
+An all-in-one campus platform designed to centralize and simplify student life — combining transportation, academics, communities, and AI-powered assistance into a single system.
 
 ---
 
-## 🛠️ Tech Stack
+## Overview
 
-**Frontend:** HTML, JavaScript, Tailwind CSS  
-**Backend:** Flask (Python), Flask-Mail  
-**APIs:** Leaflet, OpenStreetMap, Gemini API  
-**Database:** Flask-SQLAlchemy  
+Campus systems are often fragmented across multiple platforms.  
+The Uni Verse unifies essential services such as live bus tracking, academic resources, student communities, and AI-driven learning into a single, accessible interface.
 
 ---
 
-## 🧩 Installation
+## Features
+
+- **Live Bus Tracking**  
+  Real-time bus location using OpenStreetMap and Leaflet  
+
+- **Academic Resources**  
+  Access notes, syllabus, and previous year papers  
+
+- **AI Virtual Teacher** *(Gemini API)*  
+  - **Normal Mode:** Instant academic explanations  
+  - **Practice Mode:** Auto-generated MCQs, subjective questions, and coding tasks  
+  - **Counselling Mode:** Academic and personal guidance  
+
+- **Alumni Network**  
+  Connect with seniors and graduates  
+
+- **Events & Highlights**  
+  Stay updated with campus activities  
+
+- **Faculty Directory**  
+  Access faculty details and contact information  
+
+- **Clubs & Communities**  
+  Explore and join student groups  
+
+---
+
+## Tech Stack
+
+**Frontend**
+- HTML  
+- JavaScript  
+- Tailwind CSS  
+
+**Backend**
+- Flask (Python)  
+- Flask-Mail  
+
+**Database**
+- Flask-SQLAlchemy  
+
+**APIs & Integrations**
+- OpenStreetMap  
+- Leaflet  
+- Gemini API  
+
+---
+
+## Architecture
+
+- Frontend handles UI rendering and user interaction  
+- Flask backend provides APIs and application logic  
+- SQLAlchemy manages database operations  
+- External APIs handle maps and AI-based responses  
+
+---
+
+## Local Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/the-universe.git
-
-# Navigate into the project directory
+# Clone repository
+git clone https://github.com/komal-gangwar/the-universe.git
 cd the-universe
 
-# (Optional) Create a virtual environment
+# Create virtual environment (optional)
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate   # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Run the Flask app
+# Run application
 python app.py
+```
+
+---
+
+## Environment Variables
+
+Create a `.env` file:
+
+```
+GEMINI_API_KEY=your_api_key
+MAIL_USERNAME=your_email
+MAIL_PASSWORD=your_password
+```
+
+---
+
+## Status
+
+Under development.
+
+---
+
+## Author
+
+Komal Gangwar  
+https://github.com/komal-gangwar
